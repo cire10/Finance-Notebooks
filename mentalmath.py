@@ -3,7 +3,11 @@ import decimal
 import time
 
 
-def tally(current_score, question_difficulty, input_answer, correct_answer):
+def check_answer(correct_answer, input_answer):
+    return True if input_answer == correct_answer else False
+
+
+def update_score(difficulty, bool_right, current_score):
     """updates the score
 
     Args:
@@ -22,12 +26,10 @@ def tally(current_score, question_difficulty, input_answer, correct_answer):
     deduct_score = {'easy': 3,
                     'medium': 1,
                     'difficult': 2}
-
-    if input_answer == correct_answer:
-        current_score += add_score[question_difficulty]
+    if bool_right:
+        current_score += add_score[difficulty]
     else:
-        print('Inputted Answer was Wrong, Correct Answer is: {correct_answer}')
-        current_score -= deduct_score[question_difficulty]
+        current_score -= deduct_score[difficulty]
     return current_score
 
 
@@ -164,7 +166,15 @@ def generate_question(force_difficulty=None):
     return question, correct_answer, difficulty
 
 
-def practice(minutes=2, is_easy_only=None):
+def ask_game_settings():
+    is_easy_only = input('Easy Only? ')
+    if is_easy_only:
+        is_easy_only = 'easy'
+    minutes = int(input('How Many Minutes Do You Wish to Play For? '))
+    return is_easy_only, minutes
+
+
+def practice():
     """
 
     Args:
@@ -174,24 +184,26 @@ def practice(minutes=2, is_easy_only=None):
     Returns:
         int: total score
     """
+    is_easy_only, minutes = ask_game_settings()
     score = 0
+    total_rights, total_wrongs = 0, 0
     start_time = time.time()
     total_seconds = minutes * 60
     while True:
         question, correct_answer, difficulty = generate_question(is_easy_only)
-        print(f'{question}')
+        print(f'Question: {question}')
         input_answer = input('Answer: ')
+
         if time.time() - start_time > total_seconds:
             print(f'{minutes} Minutes Passed, Total Score: {score}')
             break
-        score = tally(score, difficulty, input_answer, correct_answer)
+
+        bool_right = check_answer(correct_answer, input_answer)
+        if not bool_right:
+            print(
+                f'Inputted Answer was Wrong, Correct Answer is: {correct_answer}')
+        score = update_score(difficulty, bool_right, score)
 
 
 if __name__ == '__main__':
-    is_easy_only = input('Easy Only? ')
-    number_of_minutes = int(
-        input('How Many Minutes Do You Wish to Play For? '))
-    if is_easy_only:
-        practice(number_of_minutes, 'easy')
-    else:
-        practice(number_of_minutes)
+    practice()
